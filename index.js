@@ -21,31 +21,39 @@ let items = [];
 
 
 app.get("/", async(req, res) => {
-  
-  const result = await db.query("SELECT * FROM items");
 
-  result.rows.forEach((item) => {
-    items.push(item);
-   
-  });
+  const result = await db.query("SELECT * FROM items ORDER BY id ASC");
+  items = result.rows
+ 
   console.log(items)
   res.render("index.ejs", {
     listTitle: "Today",
     listItems: items,
   });
-  items = [];
+ 
 });
 
 app.post("/add",async (req, res) => {
   const item = req.body.newItem;
   await db.query("INSERT INTO items (title) VALUES ($1)",[item]);
- 
   res.redirect("/");
 });
 
-app.post("/edit", (req, res) => {});
+app.post("/edit", async(req, res) => {
+  const item = req.body.updatedItemTitle
+  const id = req.body.updatedItemId
+  console.log(item)
+  console.log(id)
+  await db.query("UPDATE items SET title = ($1) WHERE id = ($2)",[item,id]);
+  res.redirect("/");
+  
+});
 
-app.post("/delete", (req, res) => {});
+app.post("/delete", async (req, res) => {
+  const item = req.body.deleteItemId
+  await db.query("DELETE FROM items WHERE id = ($1)",[item])
+  res.redirect("/");
+});
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
